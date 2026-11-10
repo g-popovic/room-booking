@@ -1,13 +1,28 @@
-import { ADMIN_ID } from '@room-booking/db';
-import type { RequestHandler } from 'express';
-import type { DemoSessions } from '../modules/auth/demo-session.js';
+import type { NextFunction, Request } from 'express';
 
-export function requireAdmin(sessions: DemoSessions): RequestHandler {
-  return (req, res, next) => {
-    if (sessions.read(req) !== ADMIN_ID) {
-      res.status(403).json({ error: 'Only the venue admin can manage rooms.' });
-      return;
-    }
-    next();
-  };
+import type { AppResponse } from '../app-locals.js';
+
+export async function requireAdmin(
+  req: Request,
+  res: AppResponse,
+  next: NextFunction,
+) {
+  const { db, sessions } = res.locals;
+  const memberId = sessions.read(req);
+
+  const admin = memberId
+    ? await db
+        .selectFrom('members')
+        .select('id')
+        .where('id', '=', memberId)
+        .where('is_admin', '=', true)
+        .executeTakeFirst()
+    : undefined;
+
+  if (!admin) {
+    res.status(403).json({ error: 'Only the venue admin can manage rooms.' });
+    return;
+  }
+
+  next();
 }

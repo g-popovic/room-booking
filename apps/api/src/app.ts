@@ -1,10 +1,12 @@
 import type { DatabaseClient } from '@room-booking/db';
 import express from 'express';
+
+import type { AppResponse } from './app-locals.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { createDemoSessions } from './modules/auth/demo-session.js';
-import { createAuthRoutes } from './modules/auth/routes.js';
-import { createBookingRoutes } from './modules/bookings/routes.js';
-import { createRoomRoutes } from './modules/rooms/routes.js';
+import authRoutes from './modules/auth/routes.js';
+import bookingRoutes from './modules/bookings/routes.js';
+import roomRoutes from './modules/rooms/routes.js';
 
 export function createApp(db: DatabaseClient, clock = () => new Date()) {
   const app = express();
@@ -12,14 +14,20 @@ export function createApp(db: DatabaseClient, clock = () => new Date()) {
 
   app.disable('x-powered-by');
   app.use(express.json({ limit: '16kb' }));
-  app.use((_req, res, next) => {
+
+  app.use((_req, res: AppResponse, next) => {
+    res.locals.db = db;
+    res.locals.sessions = sessions;
+    res.locals.clock = clock;
+
     res.set('Cache-Control', 'no-store');
     next();
   });
 
-  app.use('/api/session', createAuthRoutes(db, sessions));
-  app.use('/api/rooms', createRoomRoutes(db, sessions, clock));
-  app.use('/api/bookings', createBookingRoutes(db, sessions, clock));
+  app.use('/api/session', authRoutes);
+  app.use('/api/rooms', roomRoutes);
+  app.use('/api/bookings', bookingRoutes);
+
   app.use(errorHandler);
 
   return app;

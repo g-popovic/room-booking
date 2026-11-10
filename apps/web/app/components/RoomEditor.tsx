@@ -21,8 +21,10 @@ export function RoomEditor({
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+
     setBusy(true);
     setError('');
+
     try {
       await onSave(
         {
@@ -46,6 +48,7 @@ export function RoomEditor({
   return (
     <form className={styles.form} onSubmit={save}>
       <h3>{room ? `Edit ${room.name}` : 'Add a room'}</h3>
+
       <div className={styles.fields}>
         <label>
           Room name
@@ -56,6 +59,7 @@ export function RoomEditor({
             required
           />
         </label>
+
         <label>
           Capacity
           <input
@@ -68,6 +72,7 @@ export function RoomEditor({
           />
         </label>
       </div>
+
       <label>
         Description
         <textarea
@@ -78,15 +83,18 @@ export function RoomEditor({
           required
         />
       </label>
+
       <label>
         Amenities <span>Separate items with commas</span>
         <input name="amenities" defaultValue={room?.amenities.join(', ')} />
       </label>
+
       {error && (
         <p className="error" role="alert">
           {error}
         </p>
       )}
+
       <div className={styles.actions}>
         <button
           type="button"

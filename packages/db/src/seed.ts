@@ -1,12 +1,12 @@
 import { sql } from 'kysely';
 import type { Kysely } from 'kysely';
-import { ADMIN_ID, VENUE_TIME_ZONE } from './index.js';
+import { VENUE_TIME_ZONE } from './index.js';
 import type { Database } from './index.js';
 
 export const demoMembers = [
   { id: 'alex', name: 'Alex Morgan' },
   { id: 'sam', name: 'Sam Rivera' },
-  { id: ADMIN_ID, name: 'Jamie Lee' },
+  { id: 'operator', name: 'Jamie Lee', is_admin: true },
 ];
 
 export const demoRooms = [
@@ -38,9 +38,11 @@ export async function seed(db: Kysely<Database>) {
       .insertInto('members')
       .values(demoMembers)
       .onConflict((oc) => oc.doNothing())
-      .returning('id')
+      .returning('is_admin')
       .execute();
-    if (!newMembers.some((member) => member.id === ADMIN_ID)) return;
+
+    if (!newMembers.some((member) => member.is_admin)) return;
+
     const rooms = await trx
       .insertInto('rooms')
       .values(demoRooms)
@@ -49,9 +51,11 @@ export async function seed(db: Kysely<Database>) {
       .execute();
 
     const tomorrow = sql`(now() AT TIME ZONE ${VENUE_TIME_ZONE})::date + 1`;
+
     for (const [index, room] of rooms.entries()) {
       const start = sql<Date>`(${tomorrow} + make_time(${10 + index * 2}, 0, 0)) AT TIME ZONE ${VENUE_TIME_ZONE}`;
       const end = sql<Date>`${start} + interval '1 hour'`;
+
       await trx
         .insertInto('bookings')
         .values({

@@ -54,23 +54,29 @@ export function RoomCatalog({
           </button>
         </div>
       </div>
+
       {status}
+
       {!rooms && !error && (
         <p className={styles.message} role="status">
           Checking availability…
         </p>
       )}
+
       {rooms?.length === 0 && (
         <p className={styles.message}>No rooms have been listed yet.</p>
       )}
+
       <div className={styles.grid}>
         {rooms?.map((room) => {
           const openSlots = room.slots.filter((slot) => slot.available).length;
+
           return (
             <article key={room.id} className={styles.card}>
               <div className={styles.illustration}>
                 <RoomIllustration id={room.id} capacity={room.capacity} />
               </div>
+
               <div className={styles.cardBody}>
                 <div className={styles.roomMeta}>
                   <Users size={15} /> Up to {room.capacity}{' '}
@@ -84,6 +90,7 @@ export function RoomCatalog({
                   ))}
                 </div>
               </div>
+
               <div className={styles.cardFooter}>
                 <span>
                   <span className={openSlots ? styles.dot : styles.closedDot} />

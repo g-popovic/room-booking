@@ -5,15 +5,18 @@
   gap: 16px;
   margin-bottom: 20px;
 }
+
 .sectionHeader h2 {
   font: 400 1.85rem/1.2 var(--display);
   letter-spacing: -0.035em;
 }
+
 .sectionHeader p {
   margin-top: 4px;
   font-size: 0.85rem;
   color: var(--muted);
 }
+
 .dateControl {
   display: inline-flex;
   background: var(--paper);
@@ -22,6 +25,7 @@
   align-items: center;
   flex-shrink: 0;
 }
+
 .dateControl button {
   display: grid;
   place-items: center;
@@ -31,20 +35,24 @@
   width: 36px;
   height: 38px;
 }
+
 .dateControl button:hover:not(:disabled) {
   background: #eef0eb;
 }
+
 .dateControl input {
   border: 0;
   padding: 8px 4px;
   width: 137px;
   font-size: 0.875rem;
 }
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
 }
+
 .card {
   display: flex;
   flex-direction: column;
@@ -53,19 +61,23 @@
   overflow: hidden;
   box-shadow: var(--shadow);
 }
+
 .illustration {
   aspect-ratio: 1.95;
   overflow: hidden;
 }
+
 .illustration svg {
   width: 100%;
   height: 100%;
   display: block;
 }
+
 .cardBody {
   flex: 1;
   padding: 20px 20px 16px;
 }
+
 .roomMeta {
   display: flex;
   align-items: center;
@@ -73,22 +85,26 @@
   font-size: 0.82rem;
   color: var(--muted);
 }
+
 .card h3 {
   font: 400 1.6rem/1.15 var(--display);
   letter-spacing: -0.035em;
   margin: 8px 0;
 }
+
 .cardBody p {
   font-size: 0.9rem;
   color: var(--muted);
   line-height: 1.5;
 }
+
 .tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 12px;
 }
+
 .tags span {
   padding: 4px 8px;
   border-radius: 6px;
@@ -96,6 +112,7 @@
   color: #505b50;
   font-size: 0.78rem;
 }
+
 .cardFooter {
   display: flex;
   align-items: center;
@@ -104,6 +121,7 @@
   padding: 12px 20px;
   border-top: 1px solid #eeefe9;
 }
+
 .cardFooter > span {
   display: flex;
   align-items: center;
@@ -111,6 +129,7 @@
   color: var(--muted);
   font-size: 0.78rem;
 }
+
 .dot,
 .closedDot {
   width: 7px;
@@ -119,9 +138,11 @@
   flex-shrink: 0;
   background: #528362;
 }
+
 .closedDot {
   background: #979a93;
 }
+
 .message {
   margin: 0 0 16px;
   border-radius: 8px;
@@ -134,11 +155,13 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
 @media (max-width: 650px) {
   .sectionHeader {
     align-items: flex-start;
     flex-direction: column;
   }
+
   .grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;

@@ -22,13 +22,17 @@ type View = 'rooms' | 'bookings' | 'admin';
 
 export function BookingDesk() {
   const [view, setView] = useState<View>('rooms');
+
   const [account, setAccount] = useState<Account | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
+
   const [schedule, setSchedule] = useState<Schedule>();
   const [date, setDate] = useState('');
   const [bookings, setBookings] = useState<Booking[]>([]);
+
   const [roomId, setRoomId] = useState<number>();
   const [editing, setEditing] = useState<Room | null>();
+
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [dialogError, setDialogError] = useState('');
@@ -37,6 +41,7 @@ export function BookingDesk() {
 
   useEffect(() => {
     const request = new AbortController();
+
     api<Session>('/session', { signal: request.signal })
       .then((result) => {
         setAccount(result.account);
@@ -45,11 +50,13 @@ export function BookingDesk() {
       .catch((error) => {
         if (!request.signal.aborted) setError(errorMessage(error));
       });
+
     return () => request.abort();
   }, []);
 
   useEffect(() => {
     const request = new AbortController();
+
     api<Schedule>(date ? '/rooms?date=' + encodeURIComponent(date) : '/rooms', {
       signal: request.signal,
     })
@@ -57,17 +64,20 @@ export function BookingDesk() {
       .catch((error) => {
         if (!request.signal.aborted) setError(errorMessage(error));
       });
+
     return () => request.abort();
   }, [date, refresh]);
 
   useEffect(() => {
     if (!account || view !== 'bookings') return;
     const request = new AbortController();
+
     api<Booking[]>('/bookings', { signal: request.signal })
       .then(setBookings)
       .catch((error) => {
         if (!request.signal.aborted) setError(errorMessage(error));
       });
+
     return () => request.abort();
   }, [account, view, refresh]);
 
@@ -87,6 +97,7 @@ export function BookingDesk() {
     setBusy(true);
     setError('');
     setDialogError('');
+
     try {
       const next = id
         ? await api<Account>('/session', {
@@ -94,8 +105,10 @@ export function BookingDesk() {
             body: JSON.stringify({ id }),
           })
         : await api<null>('/session', { method: 'DELETE' });
+
       setBookings([]);
       setAccount(next ?? null);
+
       if (view === 'admin' && !next?.isAdmin) changeView('rooms');
     } catch (error) {
       const report = selectedRoom ? setDialogError : setError;
@@ -108,18 +121,22 @@ export function BookingDesk() {
   async function book(id: number, start: string, end: string) {
     setBusy(true);
     setDialogError('');
+
     try {
       await api('/bookings', {
         method: 'POST',
         body: JSON.stringify({ roomId: id, start, end }),
       });
+
       setRoomId(undefined);
       setNotice(
         `${selectedRoom?.name ?? 'Room'} is booked for ${displayTime(start, timeZone)}.`,
       );
+
       setRefresh((count) => count + 1);
     } catch (error) {
       setDialogError(errorMessage(error));
+
       setRefresh((count) => count + 1);
     } finally {
       setBusy(false);
@@ -130,8 +147,10 @@ export function BookingDesk() {
     setBusy(true);
     setError('');
     setNotice('');
+
     try {
       await api('/bookings/' + id, { method: 'DELETE' });
+
       setRefresh((count) => count + 1);
       setNotice('Booking cancelled. The room is available again.');
     } catch (error) {
@@ -146,6 +165,7 @@ export function BookingDesk() {
       method: id ? 'PUT' : 'POST',
       body: JSON.stringify(room),
     });
+
     setEditing(undefined);
     setRefresh((count) => count + 1);
     setNotice(id ? 'Room updated.' : 'Room added.');
@@ -259,6 +279,7 @@ export function BookingDesk() {
                 See your reservations and free up a room if your plans change.
               </p>
             </div>
+
             {status}
             <MyBookings
               signedIn={!!account}
@@ -279,6 +300,7 @@ export function BookingDesk() {
               <h1>Manage rooms</h1>
               <p>Add or edit the meeting rooms members can reserve.</p>
             </div>
+
             {status}
             <ManageRooms
               rooms={schedule?.rooms}
@@ -293,6 +315,7 @@ export function BookingDesk() {
           <DoorOpen size={16} /> Roomwell <span>Local booking demo</span>
         </footer>
       </main>
+
       {selectedRoom && (
         <BookingDialog
           key={selectedRoom.id}

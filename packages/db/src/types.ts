@@ -1,7 +1,12 @@
 import type { Generated } from 'kysely';
 
 export interface Database {
-  members: { id: string; name: string };
+  members: {
+    id: string;
+    name: string;
+    is_admin: Generated<boolean>;
+  };
+
   rooms: {
     id: Generated<number>;
     name: string;
@@ -9,6 +14,7 @@ export interface Database {
     capacity: number;
     amenities: string[];
   };
+
   bookings: {
     id: Generated<string>;
     member_id: string;

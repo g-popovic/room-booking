@@ -75,17 +75,46 @@ async function signIn(id: string) {
   return cookie;
 }
 
-test('only the seeded operator can edit a room', async () => {
+test('room permissions follow the stored admin flag for an existing session', async () => {
+  const id = randomUUID();
   const updated = { ...details, capacity: 5 };
-  const member = await signIn('alex');
-  assert.equal(
-    (await request(`/rooms/${roomId}`, 'PUT', member, updated)).status,
-    403,
-  );
-  const admin = await signIn('operator');
-  const response = await request(`/rooms/${roomId}`, 'PUT', admin, updated);
-  assert.equal(response.status, 200);
-  assert.equal((await response.json()).capacity, 5);
+
+  await db.insertInto('members').values({ id, name: 'Test member' }).execute();
+
+  try {
+    const cookie = await signIn(id);
+
+    assert.equal(
+      (await request(`/rooms/${roomId}`, 'PUT', cookie, updated)).status,
+      403,
+    );
+
+    await db
+      .updateTable('members')
+      .set({ is_admin: true })
+      .where('id', '=', id)
+      .execute();
+
+    const session = await request('/session', 'GET', cookie);
+    assert.equal((await session.json()).account.isAdmin, true);
+
+    const response = await request(`/rooms/${roomId}`, 'PUT', cookie, updated);
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).capacity, 5);
+
+    await db
+      .updateTable('members')
+      .set({ is_admin: false })
+      .where('id', '=', id)
+      .execute();
+
+    assert.equal(
+      (await request(`/rooms/${roomId}`, 'PUT', cookie, updated)).status,
+      403,
+    );
+  } finally {
+    await db.deleteFrom('members').where('id', '=', id).execute();
+  }
 });
 
 test('a concurrent overlap gets rejected and cancellation releases the slot', async () => {

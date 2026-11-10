@@ -22,7 +22,7 @@ Open **http://127.0.0.1:3000**. Choose Alex Morgan or Sam Rivera to try member b
 
 The account picker lists fictional accounts from the Postgres `members` table. Selecting one asks Express to issue a signed, HTTP-only cookie containing the member ID and expiry. The browser sends that cookie on later requests, and Express verifies it before reading the ID. Postgres stores the demo accounts, rooms, and bookings. The cookie carries the session, so there is no sessions table.
 
-The cookie lasts up to 12 hours and stops working after an API restart because the signing key lives in memory. The picker is passwordless and includes the seeded admin. Both development servers bind to loopback for local use.
+The cookie lasts up to 12 hours and stops working after an API restart because the signing key lives in memory. The picker is passwordless and includes Jamie, the seeded admin. Express checks the member’s `is_admin` flag in Postgres when handling room changes. Both development servers bind to loopback for local use.
 
 ## Verify
 

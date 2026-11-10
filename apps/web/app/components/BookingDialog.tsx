@@ -32,12 +32,14 @@ export function BookingDialog({
   const dialog = useRef<HTMLDialogElement>(null);
   const [duration, setDuration] = useState(1);
   const [start, setStart] = useState('');
+
   useEffect(() => {
     dialog.current?.showModal();
   }, []);
 
   const options = room.slots.map((slot, index) => {
     const span = room.slots.slice(index, index + duration);
+
     return {
       ...slot,
       end: span.at(-1)!.end,
@@ -45,9 +47,11 @@ export function BookingDialog({
         span.length === duration && span.every((part) => part.available),
     };
   });
+
   const selected = options.find(
     (slot) => slot.start === start && slot.available,
   );
+
   const formattedDate = new Intl.DateTimeFormat('en-GB', {
     weekday: 'long',
     day: 'numeric',
@@ -76,6 +80,7 @@ export function BookingDialog({
           <X size={18} />
         </button>
       </div>
+
       <label className={styles.duration}>
         Meeting length
         <select
@@ -95,6 +100,7 @@ export function BookingDialog({
           })}
         </select>
       </label>
+
       <div className={styles.slots} aria-label="Start times">
         {options.map((slot) => (
           <button
@@ -108,9 +114,11 @@ export function BookingDialog({
           </button>
         ))}
       </div>
+
       {!options.some((slot) => slot.available) && (
         <p className={styles.date}>No slots fit this meeting length.</p>
       )}
+
       {!account && (
         <label className={styles.duration}>
           Demo account
@@ -131,11 +139,13 @@ export function BookingDialog({
           </select>
         </label>
       )}
+
       {error && (
         <p className="error" role="alert">
           {error}
         </p>
       )}
+
       <div className={styles.footer}>
         <span>
           {selected

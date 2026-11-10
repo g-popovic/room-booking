@@ -23,12 +23,15 @@ export function MyBookings({
           Choose a demo account to see your bookings.
         </p>
       )}
+
       {signedIn && bookings.length === 0 && (
         <p className={styles.message}>You haven’t booked a room yet.</p>
       )}
+
       <div className={styles.list}>
         {bookings.map((booking) => {
           const past = new Date(booking.start).getTime() <= Date.now();
+
           return (
             <article key={booking.id} className={styles.listItem}>
               <div>
