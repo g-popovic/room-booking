@@ -3,7 +3,7 @@
 import { CalendarDays, DoorOpen, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api, errorMessage } from '../lib/api';
-import { displayTime } from '../lib/format';
+import { displayDate, displayTime } from '../lib/format';
 import type {
   Account,
   Booking,
@@ -27,7 +27,6 @@ export function BookingDesk() {
   const [accounts, setAccounts] = useState<Account[]>([]);
 
   const [schedule, setSchedule] = useState<Schedule>();
-  const [date, setDate] = useState('');
   const [bookings, setBookings] = useState<Booking[]>([]);
 
   const [roomId, setRoomId] = useState<number>();
@@ -57,16 +56,14 @@ export function BookingDesk() {
   useEffect(() => {
     const request = new AbortController();
 
-    api<Schedule>(date ? '/rooms?date=' + encodeURIComponent(date) : '/rooms', {
-      signal: request.signal,
-    })
+    api<Schedule>('/rooms', { signal: request.signal })
       .then(setSchedule)
       .catch((error) => {
         if (!request.signal.aborted) setError(errorMessage(error));
       });
 
     return () => request.abort();
-  }, [date, refresh]);
+  }, [refresh]);
 
   useEffect(() => {
     if (!account || view !== 'bookings') return;
@@ -81,9 +78,7 @@ export function BookingDesk() {
     return () => request.abort();
   }, [account, view, refresh]);
 
-  const day = date || schedule?.date || '';
-  const rooms = schedule?.date === day ? schedule.rooms : undefined;
-  const selectedRoom = rooms?.find((room) => room.id === roomId);
+  const selectedRoom = schedule?.rooms.find((room) => room.id === roomId);
   const timeZone = schedule?.timeZone ?? 'Europe/Podgorica';
 
   function changeView(nextView: View) {
@@ -96,7 +91,6 @@ export function BookingDesk() {
   async function selectAccount(id: string) {
     setBusy(true);
     setError('');
-    setDialogError('');
 
     try {
       const next = id
@@ -111,8 +105,7 @@ export function BookingDesk() {
 
       if (view === 'admin' && !next?.isAdmin) changeView('rooms');
     } catch (error) {
-      const report = selectedRoom ? setDialogError : setError;
-      report(errorMessage(error));
+      setError(errorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -130,7 +123,7 @@ export function BookingDesk() {
 
       setRoomId(undefined);
       setNotice(
-        `${selectedRoom?.name ?? 'Room'} is booked for ${displayTime(start, timeZone)}.`,
+        `${selectedRoom?.name ?? 'Room'} is booked for ${displayDate(start, timeZone)} at ${displayTime(start, timeZone)}.`,
       );
 
       setRefresh((count) => count + 1);
@@ -252,14 +245,14 @@ export function BookingDesk() {
                 <MapPin size={16} /> The Commons · Podgorica
               </div>
               <h1>Book a meeting room</h1>
-              <p>Find an open slot and make the room yours.</p>
+              <p>
+                Find a room that fits your group, then choose when to book it.
+              </p>
             </div>
             <RoomCatalog
-              date={day}
-              rooms={rooms}
+              rooms={schedule?.rooms}
               status={status}
               error={error}
-              onDateChange={setDate}
               onBook={(id) => {
                 setDialogError('');
                 setRoomId(id);
@@ -316,15 +309,15 @@ export function BookingDesk() {
         </footer>
       </main>
 
-      {selectedRoom && (
+      {schedule && selectedRoom && (
         <BookingDialog
           key={selectedRoom.id}
           room={selectedRoom}
-          date={day}
+          initialDate={schedule.date}
+          refresh={refresh}
           timeZone={timeZone}
-          account={account}
-          accounts={accounts}
-          onAccount={selectAccount}
+          signedIn={!!account}
+          onDateChange={() => setDialogError('')}
           onClose={() => setRoomId(undefined)}
           onBook={book}
           busy={busy}

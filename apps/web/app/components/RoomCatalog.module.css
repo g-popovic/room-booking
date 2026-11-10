@@ -17,34 +17,16 @@
   color: var(--muted);
 }
 
-.dateControl {
-  display: inline-flex;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.dateControl button {
+.peopleFilter {
   display: grid;
-  place-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: 8px;
-  width: 36px;
-  height: 38px;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
-.dateControl button:hover:not(:disabled) {
-  background: #eef0eb;
-}
-
-.dateControl input {
-  border: 0;
-  padding: 8px 4px;
-  width: 137px;
-  font-size: 0.875rem;
+.peopleFilter input {
+  width: 100%;
+  min-width: 120px;
 }
 
 .grid {
@@ -116,31 +98,9 @@
 .cardFooter {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  justify-content: flex-end;
   padding: 12px 20px;
   border-top: 1px solid #eeefe9;
-}
-
-.cardFooter > span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-
-.dot,
-.closedDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: #528362;
-}
-
-.closedDot {
-  background: #979a93;
 }
 
 .message {
