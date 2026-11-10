@@ -1,0 +1,23 @@
+{
+  "name": "@room-booking/db",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./migrate": "./src/migrate.ts",
+    "./seed": "./src/seed.ts"
+  },
+  "scripts": {
+    "setup": "node --env-file-if-exists=../../.env --import tsx src/setup.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "kysely": "0.29.8",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "22",
+    "@types/pg": "8",
+    "tsx": "4.23.15"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "room-booking",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.31.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web \"pnpm --filter @room-booking/api dev\" \"pnpm --filter @room-booking/web dev\"",
+    "db:setup": "pnpm --filter @room-booking/db run setup",
+    "test": "pnpm --filter @room-booking/api test",
+    "typecheck": "pnpm -r typecheck",
+    "build": "pnpm --filter @room-booking/web build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "concurrently": "10.0.7",
+    "prettier": "3.9.10",
+    "typescript": "5.9.3"
+  }
+}

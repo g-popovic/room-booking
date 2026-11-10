@@ -1,0 +1,77 @@
+.dialog {
+  width: min(540px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  border: 0;
+  border-radius: 20px;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 24px;
+  box-shadow: 0 24px 90px #161c2740;
+}
+.dialog::backdrop {
+  background: #22282272;
+}
+.header,
+.footer,
+.duration {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.header h2 {
+  font: 400 clamp(1.5rem, 5vw, 2rem)/1.1 var(--display);
+  margin-top: 4px;
+}
+.header button {
+  padding: 8px;
+}
+.date,
+.footer span {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.duration {
+  margin: 20px 0 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.slots {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.slots button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  min-height: 40px;
+  font-variant-numeric: tabular-nums;
+}
+.slots button:hover:not(:disabled) {
+  border-color: var(--green);
+}
+.slots button[aria-pressed='true'] {
+  color: white;
+  background: var(--green);
+  border-color: var(--green);
+}
+.slots button:disabled {
+  color: #7c8178;
+  background: #f3f3f0;
+  text-decoration: line-through;
+}
+.footer {
+  border-top: 1px solid var(--line);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+@media (max-width: 480px) {
+  .slots {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .dialog {
+    padding: 16px;
+  }
+}
