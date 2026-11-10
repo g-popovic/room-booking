@@ -1,4 +1,4 @@
-import { BookingDesk } from './BookingDesk';
+import { BookingDesk } from './components/BookingDesk';
 
 export default function Home() {
   return <BookingDesk />;

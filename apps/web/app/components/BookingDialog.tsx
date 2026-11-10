@@ -2,8 +2,8 @@
 
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import type { Account, Room } from './api';
-import { displayTime } from './api';
+import type { Account, Room } from '../lib/api';
+import { displayTime } from '../lib/format';
 import styles from './BookingDialog.module.css';
 
 export function BookingDialog({

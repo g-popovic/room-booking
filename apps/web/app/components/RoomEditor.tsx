@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import type { Room, RoomDetails } from './api';
-import { errorMessage } from './api';
+import type { Room, RoomDetails } from '../lib/api';
+import { errorMessage } from '../lib/api';
 import styles from './RoomEditor.module.css';
 
 export function RoomEditor({

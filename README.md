@@ -18,7 +18,11 @@ pnpm dev
 
 Open **http://127.0.0.1:3000**. Choose Alex Morgan or Sam Rivera to try member bookings. Choose Jamie Lee to open **Manage rooms**. The setup command adds fictional rooms, demo accounts, and a few reservations the first time it runs.
 
-The demo account picker is intentionally passwordless. Both development servers bind to loopback. Use them locally with fictional data.
+## How demo sign-in works
+
+The account picker lists fictional accounts from the Postgres `members` table. Selecting one asks Express to issue a signed, HTTP-only cookie containing the member ID and expiry. The browser sends that cookie on later requests, and Express verifies it before reading the ID. Postgres stores the demo accounts, rooms, and bookings. The cookie carries the session, so there is no sessions table.
+
+The cookie lasts up to 12 hours and stops working after an API restart because the signing key lives in memory. The picker is passwordless and includes the seeded admin. Both development servers bind to loopback for local use.
 
 ## Verify
 
@@ -33,8 +37,8 @@ The API tests run migrations against `TEST_DATABASE_URL` and exercise real Postg
 
 ## Workspace
 
-- `apps/web` — Next.js UI and a same-origin proxy to Express.
-- `apps/api` — Express API, demo sessions, and booking rules.
-- `packages/db` — Kysely schema, Postgres connection, migrations, and demo data.
+- `apps/web/app/components` — The booking desk and its room, booking, and admin views. Shared requests and formatting live in `app/lib`.
+- `apps/api/src/app.ts` — Composes Express and mounts the routers. The `modules/auth`, `modules/rooms`, and `modules/bookings` folders contain the routes for each feature.
+- `packages/db` — Kysely client and types in `src`, SQL schema in `migrations`, and demo records in `src/seed.ts`.
 
 Bookings are free and run from 08:00 to 20:00 in the venue's time zone. PostgreSQL keeps active bookings from overlapping. Cancelled bookings remain visible to their owner.

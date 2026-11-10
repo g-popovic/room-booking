@@ -41,3 +41,5 @@ export function createDemoSessions() {
     },
   };
 }
+
+export type DemoSessions = ReturnType<typeof createDemoSessions>;
