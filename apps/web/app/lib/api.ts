@@ -23,6 +23,10 @@ export type Booking = {
   cancelled: string | null;
 };
 
+export type CalendarFeed = { createdAt: string };
+
+export type CreatedCalendarFeed = CalendarFeed & { path: string };
+
 export async function api<T>(
   path: string,
   options: RequestInit = {},

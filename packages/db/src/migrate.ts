@@ -36,6 +36,14 @@ export async function migrate(db: Kysely<Database>) {
               await sql`ALTER TABLE members DROP COLUMN is_admin`.execute(db);
             },
           },
+          '003_calendar_feeds': {
+            async up(db: Kysely<unknown>) {
+              await runSqlMigration(db, '003_calendar_feeds.sql');
+            },
+            async down(db: Kysely<unknown>) {
+              await sql`DROP TABLE calendar_feeds`.execute(db);
+            },
+          },
         };
       },
     },

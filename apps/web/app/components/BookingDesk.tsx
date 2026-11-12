@@ -13,6 +13,7 @@ import type {
   Session,
 } from '../lib/api';
 import { BookingDialog } from './BookingDialog';
+import { CalendarSync } from './CalendarSync';
 import { ManageRooms } from './ManageRooms';
 import { MyBookings } from './MyBookings';
 import { RoomCatalog } from './RoomCatalog';
@@ -274,6 +275,7 @@ export function BookingDesk() {
             </div>
 
             {status}
+            {account && <CalendarSync key={account.id} timeZone={timeZone} />}
             <MyBookings
               signedIn={!!account}
               bookings={bookings}

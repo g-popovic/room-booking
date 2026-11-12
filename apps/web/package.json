@@ -5,6 +5,7 @@
     "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
+    "test": "node --import tsx --test app/lib/*.test.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@types/node": "22",
     "@types/react": "19",
-    "@types/react-dom": "19"
+    "@types/react-dom": "19",
+    "tsx": "4.23.15"
   }
 }

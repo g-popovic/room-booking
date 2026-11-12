@@ -23,4 +23,10 @@ export interface Database {
     ends_at: Date;
     cancelled_at: Date | null;
   };
+
+  calendar_feeds: {
+    member_id: string;
+    token_hash: Buffer;
+    created_at: Generated<Date>;
+  };
 }

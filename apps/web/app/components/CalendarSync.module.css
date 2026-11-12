@@ -1,0 +1,75 @@
+.panel {
+  display: grid;
+  gap: 12px;
+  max-width: 760px;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  border-left: 3px solid var(--green);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  color: var(--green);
+}
+
+.heading h2 {
+  color: var(--ink);
+  font: 400 1.3rem/1.15 var(--display);
+}
+
+.text,
+.hint,
+.label {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.hint {
+  font-size: 0.8rem;
+}
+
+.label {
+  margin-top: 4px;
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.copy {
+  display: flex;
+  gap: 8px;
+}
+
+.copy input {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.confirm {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}

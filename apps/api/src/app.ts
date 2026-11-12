@@ -6,6 +6,10 @@ import { errorHandler } from './middleware/error-handler.js';
 import { createDemoSessions } from './modules/auth/demo-session.js';
 import authRoutes from './modules/auth/routes.js';
 import bookingRoutes from './modules/bookings/routes.js';
+import {
+  calendarFeedRoutes,
+  calendarRoutes,
+} from './modules/calendar/routes.js';
 import roomRoutes from './modules/rooms/routes.js';
 
 export function createApp(db: DatabaseClient, clock = () => new Date()) {
@@ -27,6 +31,8 @@ export function createApp(db: DatabaseClient, clock = () => new Date()) {
   app.use('/api/session', authRoutes);
   app.use('/api/rooms', roomRoutes);
   app.use('/api/bookings', bookingRoutes);
+  app.use('/api/calendar-feed', calendarFeedRoutes);
+  app.use('/api/calendar', calendarRoutes);
 
   app.use(errorHandler);
 

@@ -8,6 +8,7 @@
     "./seed": "./src/seed.ts"
   },
   "scripts": {
+    "start": "node --env-file-if-exists=../../.env --import tsx src/start.ts",
     "setup": "node --env-file-if-exists=../../.env --import tsx src/setup.ts",
     "typecheck": "tsc -p tsconfig.json"
   },

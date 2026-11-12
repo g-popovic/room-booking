@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --env-file-if-exists=../../.env --import tsx --watch src/server.ts",
+    "dev": "node --env-file=../../.env --import tsx --watch src/server.ts",
     "test": "node --env-file-if-exists=../../.env --import tsx --test src/*.test.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
@@ -17,6 +17,7 @@
     "@types/express": "5",
     "@types/luxon": "3",
     "@types/node": "22",
+    "ical.js": "2.2.1",
     "tsx": "4.23.15"
   }
 }

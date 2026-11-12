@@ -2,14 +2,15 @@
   "name": "room-booking",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.31.0",
+  "packageManager": "pnpm@10.34.5",
   "engines": {
     "node": ">=22.13.0"
   },
   "scripts": {
     "dev": "concurrently -k -n api,web \"pnpm --filter @room-booking/api dev\" \"pnpm --filter @room-booking/web dev\"",
+    "db:start": "pnpm --filter @room-booking/db run start",
     "db:setup": "pnpm --filter @room-booking/db run setup",
-    "test": "pnpm --filter @room-booking/api test",
+    "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "build": "pnpm --filter @room-booking/web build",
     "format": "prettier --write .",
