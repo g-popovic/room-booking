@@ -59,10 +59,52 @@
   color: var(--green);
 }
 
-.topInner select {
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--green);
+  color: white;
+  font-size: 0.75rem;
+}
+
+.message a {
+  color: var(--green);
+  font-weight: 650;
+}
+
+.account {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 0.875rem;
-  max-width: 190px;
+}
+
+.account a,
+.account button {
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
+.who {
+  display: grid;
+  gap: 2px;
+  text-align: right;
+  min-width: 0;
+}
+
+.who span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
 }
 
 .main {
@@ -140,11 +182,20 @@
     order: 3;
     width: 100%;
     min-height: 42px;
+    /* Four tabs don't fit on the narrowest phones; let the row scroll
+       instead of widening the page. */
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
   .nav button {
-    padding: 0 10px;
+    flex-shrink: 0;
+    padding: 0 8px;
     white-space: nowrap;
+  }
+
+  .who span {
+    display: none;
   }
 
   .main {

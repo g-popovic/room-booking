@@ -1,12 +1,15 @@
 'use client';
 
-import { CalendarDays, DoorOpen, MapPin } from 'lucide-react';
+import { CalendarDays, DoorOpen, LogOut, MapPin, Users } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { api, errorMessage } from '../lib/api';
+import { api, errorMessage, isSignedOut } from '../lib/api';
 import { displayDate, displayTime } from '../lib/format';
 import type {
   Account,
   Booking,
+  Invitation,
+  Person,
   Room,
   RoomDetails,
   Schedule,
@@ -17,15 +20,19 @@ import { CalendarSync } from './CalendarSync';
 import { ManageRooms } from './ManageRooms';
 import { MyBookings } from './MyBookings';
 import { RoomCatalog } from './RoomCatalog';
+import { Teams } from './Teams';
 import styles from './BookingDesk.module.css';
 
-type View = 'rooms' | 'bookings' | 'admin';
+type View = 'rooms' | 'bookings' | 'teams' | 'admin';
 
 export function BookingDesk() {
   const [view, setView] = useState<View>('rooms');
 
-  const [account, setAccount] = useState<Account | null>(null);
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  // undefined until the session has been checked.
+  const [account, setAccount] = useState<Account | null>();
+
+  // Open team invitations, shown as a count next to Teams.
+  const [invitations, setInvitations] = useState(0);
 
   const [schedule, setSchedule] = useState<Schedule>();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -42,11 +49,8 @@ export function BookingDesk() {
   useEffect(() => {
     const request = new AbortController();
 
-    api<Session>('/session', { signal: request.signal })
-      .then((result) => {
-        setAccount(result.account);
-        setAccounts(result.accounts);
-      })
+    api<Session>('/auth/me', { signal: request.signal })
+      .then((result) => setAccount(result.account))
       .catch((error) => {
         if (!request.signal.aborted) setError(errorMessage(error));
       });
@@ -73,11 +77,28 @@ export function BookingDesk() {
     api<Booking[]>('/bookings', { signal: request.signal })
       .then(setBookings)
       .catch((error) => {
-        if (!request.signal.aborted) setError(errorMessage(error));
+        if (!request.signal.aborted) showError(error);
       });
 
     return () => request.abort();
   }, [account, view, refresh]);
+
+  useEffect(() => {
+    if (!account) {
+      setInvitations(0);
+      return;
+    }
+
+    const request = new AbortController();
+
+    api<Invitation[]>('/invites', { signal: request.signal })
+      .then((invites) => setInvitations(invites.length))
+      .catch((error) => {
+        if (!request.signal.aborted) showError(error);
+      });
+
+    return () => request.abort();
+  }, [account]);
 
   const selectedRoom = schedule?.rooms.find((room) => room.id === roomId);
   const timeZone = schedule?.timeZone ?? 'Europe/Podgorica';
@@ -89,22 +110,28 @@ export function BookingDesk() {
     setView(nextView);
   }
 
-  async function selectAccount(id: string) {
+  function signedOut() {
+    setAccount(null);
+    setBookings([]);
+    if (view === 'admin') setView('rooms');
+  }
+
+  // A 401 means the session ended (it expired, or the member signed out in
+  // another tab). Switching to the signed-out state explains that on its own:
+  // each view then shows how to sign in.
+  function showError(error: unknown) {
+    if (isSignedOut(error)) signedOut();
+    else setError(errorMessage(error));
+  }
+
+  async function signOut() {
     setBusy(true);
     setError('');
+    setNotice('');
 
     try {
-      const next = id
-        ? await api<Account>('/session', {
-            method: 'POST',
-            body: JSON.stringify({ id }),
-          })
-        : await api<null>('/session', { method: 'DELETE' });
-
-      setBookings([]);
-      setAccount(next ?? null);
-
-      if (view === 'admin' && !next?.isAdmin) changeView('rooms');
+      await api('/auth/logout', { method: 'POST' });
+      signedOut();
     } catch (error) {
       setError(errorMessage(error));
     } finally {
@@ -112,23 +139,37 @@ export function BookingDesk() {
     }
   }
 
-  async function book(id: number, start: string, end: string) {
+  async function book(
+    id: number,
+    start: string,
+    end: string,
+    participants: Person[],
+  ) {
     setBusy(true);
     setDialogError('');
 
     try {
       await api('/bookings', {
         method: 'POST',
-        body: JSON.stringify({ roomId: id, start, end }),
+        body: JSON.stringify({
+          roomId: id,
+          start,
+          end,
+          participantIds: participants.map((person) => person.id),
+        }),
       });
 
       setRoomId(undefined);
+      const invited = participants.length
+        ? ` ${participants.length === 1 ? `${participants[0].name} is` : `${participants.length} people are`} invited and can answer under My bookings.`
+        : '';
       setNotice(
-        `${selectedRoom?.name ?? 'Room'} is booked for ${displayDate(start, timeZone)} at ${displayTime(start, timeZone)}.`,
+        `${selectedRoom?.name ?? 'Room'} is booked for ${displayDate(start, timeZone)} at ${displayTime(start, timeZone)}.${invited}`,
       );
 
       setRefresh((count) => count + 1);
     } catch (error) {
+      if (isSignedOut(error)) return showError(error);
       setDialogError(errorMessage(error));
 
       setRefresh((count) => count + 1);
@@ -148,17 +189,63 @@ export function BookingDesk() {
       setRefresh((count) => count + 1);
       setNotice('Booking cancelled. The room is available again.');
     } catch (error) {
-      setError(errorMessage(error));
+      showError(error);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function respond(id: string, response: 'attending' | 'not_attending') {
+    setBusy(true);
+    setError('');
+    setNotice('');
+
+    try {
+      await api(`/bookings/${id}/response`, {
+        method: 'PUT',
+        body: JSON.stringify({ response }),
+      });
+      setRefresh((count) => count + 1);
+    } catch (error) {
+      showError(error);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function savePeople(id: string, people: Person[]) {
+    setBusy(true);
+    setError('');
+    setNotice('');
+
+    try {
+      await api(`/bookings/${id}/participants`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          participantIds: people.map((person) => person.id),
+        }),
+      });
+      setRefresh((count) => count + 1);
+      setNotice('Invitations updated.');
+      return true;
+    } catch (error) {
+      showError(error);
+      return false;
     } finally {
       setBusy(false);
     }
   }
 
   async function saveRoom(room: RoomDetails, id?: number) {
-    await api(id ? '/rooms/' + id : '/rooms', {
-      method: id ? 'PUT' : 'POST',
-      body: JSON.stringify(room),
-    });
+    try {
+      await api(id ? '/rooms/' + id : '/rooms', {
+        method: id ? 'PUT' : 'POST',
+        body: JSON.stringify(room),
+      });
+    } catch (error) {
+      if (isSignedOut(error)) showError(error);
+      throw error;
+    }
 
     setEditing(undefined);
     setRefresh((count) => count + 1);
@@ -209,6 +296,21 @@ export function BookingDesk() {
             >
               My bookings
             </button>
+            <button
+              type="button"
+              aria-current={view === 'teams' ? 'page' : undefined}
+              onClick={() => changeView('teams')}
+            >
+              Teams
+              {invitations > 0 && (
+                <span
+                  className={styles.badge}
+                  aria-label={`${invitations} ${invitations === 1 ? 'invitation' : 'invitations'}`}
+                >
+                  {invitations}
+                </span>
+              )}
+            </button>
             {account?.isAdmin && (
               <button
                 type="button"
@@ -219,22 +321,33 @@ export function BookingDesk() {
               </button>
             )}
           </nav>
-          <select
-            aria-label="Demo account"
-            value={account?.id ?? ''}
-            onChange={(event) => void selectAccount(event.target.value)}
-            disabled={busy || !accounts.length}
-          >
-            <option value="">
-              {account ? 'Sign out' : 'Choose demo account'}
-            </option>
-            {accounts.map((person) => (
-              <option key={person.id} value={person.id}>
-                {person.name}
-                {person.isAdmin ? ' (admin)' : ''}
-              </option>
-            ))}
-          </select>
+          {account ? (
+            <div className={styles.account}>
+              <span className={styles.who}>
+                <strong>{account.name}</strong>
+                <span>{account.isAdmin ? 'Venue admin' : account.email}</span>
+              </span>
+              <button
+                type="button"
+                className="secondary"
+                disabled={busy}
+                onClick={() => void signOut()}
+              >
+                <LogOut size={16} /> Sign out
+              </button>
+            </div>
+          ) : (
+            account === null && (
+              <div className={styles.account}>
+                <Link href="/sign-in" className="secondary">
+                  Sign in
+                </Link>
+                <Link href="/register" className="primary">
+                  Create account
+                </Link>
+              </div>
+            )
+          )}
         </div>
       </header>
 
@@ -270,19 +383,57 @@ export function BookingDesk() {
               </div>
               <h1>My bookings</h1>
               <p>
-                See your reservations and free up a room if your plans change.
+                See the rooms you’ve booked or been invited to, and let people
+                know if you’re coming.
               </p>
             </div>
 
             {status}
             {account && <CalendarSync key={account.id} timeZone={timeZone} />}
-            <MyBookings
-              signedIn={!!account}
-              bookings={bookings}
-              timeZone={timeZone}
-              busy={busy}
-              onCancel={cancel}
-            />
+            {account !== undefined && (
+              <MyBookings
+                signedIn={!!account}
+                you={account?.id ?? ''}
+                bookings={bookings}
+                timeZone={timeZone}
+                busy={busy}
+                onCancel={cancel}
+                onRespond={respond}
+                onSavePeople={savePeople}
+              />
+            )}
+          </section>
+        )}
+
+        {view === 'teams' && (
+          <section>
+            <div className={styles.intro}>
+              <div className={styles.venue}>
+                <Users size={16} /> Work together
+              </div>
+              <h1>Teams</h1>
+              <p>
+                Create a team for the people you meet with, and invite them by
+                email.
+              </p>
+            </div>
+
+            {status}
+            {account ? (
+              <Teams
+                key={account.id}
+                account={account}
+                timeZone={timeZone}
+                onInvitationsChange={setInvitations}
+                onSignedOut={signedOut}
+              />
+            ) : (
+              account === null && (
+                <p className={styles.message}>
+                  <Link href="/sign-in">Sign in</Link> to create and join teams.
+                </p>
+              )
+            )}
           </section>
         )}
 

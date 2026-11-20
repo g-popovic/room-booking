@@ -1,0 +1,101 @@
+.picker {
+  display: grid;
+  gap: 8px;
+}
+
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.heading span {
+  color: var(--muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.heading span[data-full='true'] {
+  color: var(--error);
+  font-weight: 650;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 4px 3px 10px;
+  border-radius: 999px;
+  background: #eef3ef;
+  color: var(--green);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.chips button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+}
+
+.chips button:hover:not(:disabled) {
+  background: #dbe7de;
+}
+
+.options {
+  display: grid;
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.options li {
+  display: grid;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.options li[aria-selected='true'] {
+  background: #eef3ef;
+}
+
+.options strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.options span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}

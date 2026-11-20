@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { DateTime } from 'luxon';
 
-import type { AppResponse } from '../../app-locals.js';
+import type { AppResponse, MemberResponse } from '../../app-locals.js';
+import { requireMember } from '../../middleware/auth.js';
 import { buildCalendar } from './ics.js';
 import {
   createFeedToken,
@@ -15,6 +16,8 @@ const PRODUCT_ID = '-//Roomwell//Booking calendar//EN';
 const LOCATION = 'The Commons, Podgorica';
 const DESCRIPTION =
   'Meeting room booked through Roomwell. To cancel, use My bookings in Roomwell.';
+const invitedDescription = (organizer: string) =>
+  `${organizer} invited you to this meeting room booking on Roomwell. To answer, use My bookings in Roomwell.`;
 // Past bookings stay in the feed for a year so they don't vanish from the
 // member's calendar history as soon as they end.
 const HISTORY_MONTHS = 12;
@@ -22,14 +25,11 @@ const HISTORY_MONTHS = 12;
 // Signed-in members manage their private feed link here.
 export const calendarFeedRoutes = Router();
 
-calendarFeedRoutes.get('/', async (req, res: AppResponse) => {
-  const { db, sessions } = res.locals;
-  const memberId = sessions.read(req);
+calendarFeedRoutes.use(requireMember);
 
-  if (!memberId)
-    return res
-      .status(401)
-      .json({ error: 'Choose a demo account to set up calendar sync.' });
+calendarFeedRoutes.get('/', async (_req, res: MemberResponse) => {
+  const { db, member } = res.locals;
+  const memberId = member.id;
 
   const feed = await db
     .selectFrom('calendar_feeds')
@@ -42,14 +42,9 @@ calendarFeedRoutes.get('/', async (req, res: AppResponse) => {
 
 // Creates the member's link, or replaces it so the previous one stops working.
 // The token is returned only in this response; only its hash is stored.
-calendarFeedRoutes.post('/', async (req, res: AppResponse) => {
-  const { db, sessions, clock } = res.locals;
-  const memberId = sessions.read(req);
-
-  if (!memberId)
-    return res
-      .status(401)
-      .json({ error: 'Choose a demo account to set up calendar sync.' });
+calendarFeedRoutes.post('/', async (_req, res: MemberResponse) => {
+  const { db, clock, member } = res.locals;
+  const memberId = member.id;
 
   const { token, hash } = createFeedToken();
   const now = clock();
@@ -65,14 +60,9 @@ calendarFeedRoutes.post('/', async (req, res: AppResponse) => {
   res.status(201).json({ path: feedPath(token), createdAt: now });
 });
 
-calendarFeedRoutes.delete('/', async (req, res: AppResponse) => {
-  const { db, sessions } = res.locals;
-  const memberId = sessions.read(req);
-
-  if (!memberId)
-    return res
-      .status(401)
-      .json({ error: 'Choose a demo account to set up calendar sync.' });
+calendarFeedRoutes.delete('/', async (_req, res: MemberResponse) => {
+  const { db, member } = res.locals;
+  const memberId = member.id;
 
   await db
     .deleteFrom('calendar_feeds')
@@ -105,13 +95,32 @@ calendarRoutes.get('/:token.ics', async (req, res: AppResponse) => {
     .minus({ months: HISTORY_MONTHS })
     .toJSDate();
 
-  // Cancelled bookings are left out; calendar apps delete events that
-  // disappear from a subscribed feed.
+  // Bookings the member organizes or is invited to. Cancelled ones, and ones
+  // they said they won't attend, are left out; calendar apps delete events
+  // that disappear from a subscribed feed.
   const bookings = await db
     .selectFrom('bookings')
     .innerJoin('rooms', 'rooms.id', 'bookings.room_id')
-    .select(['bookings.id', 'rooms.name as room', 'starts_at', 'ends_at'])
-    .where('member_id', '=', feed.member_id)
+    .innerJoin('members as organizer', 'organizer.id', 'bookings.member_id')
+    .leftJoin('booking_participants as me', (join) =>
+      join
+        .onRef('me.booking_id', '=', 'bookings.id')
+        .on('me.member_id', '=', feed.member_id),
+    )
+    .select([
+      'bookings.id',
+      'rooms.name as room',
+      'starts_at',
+      'ends_at',
+      'organizer.name as organizer',
+      'me.member_id as participant',
+    ])
+    .where((eb) =>
+      eb.or([
+        eb('bookings.member_id', '=', feed.member_id),
+        eb('me.response', 'in', ['pending', 'attending']),
+      ]),
+    )
     .where('cancelled_at', 'is', null)
     .where('ends_at', '>=', since)
     .orderBy('starts_at')
@@ -125,7 +134,9 @@ calendarRoutes.get('/:token.ics', async (req, res: AppResponse) => {
       end: booking.ends_at,
       summary: `${booking.room} · Roomwell`,
       location: LOCATION,
-      description: DESCRIPTION,
+      description: booking.participant
+        ? invitedDescription(booking.organizer)
+        : DESCRIPTION,
     })),
     now,
   );

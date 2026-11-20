@@ -44,6 +44,43 @@ export async function migrate(db: Kysely<Database>) {
               await sql`DROP TABLE calendar_feeds`.execute(db);
             },
           },
+          '004_auth': {
+            async up(db: Kysely<unknown>) {
+              await runSqlMigration(db, '004_auth.sql');
+            },
+            async down(db: Kysely<unknown>) {
+              await sql`DROP TABLE sessions`.execute(db);
+              await sql`
+                ALTER TABLE members
+                  ALTER COLUMN id DROP DEFAULT,
+                  DROP COLUMN email,
+                  DROP COLUMN password_hash,
+                  DROP COLUMN created_at
+              `.execute(db);
+            },
+          },
+          '005_teams': {
+            async up(db: Kysely<unknown>) {
+              await runSqlMigration(db, '005_teams.sql');
+            },
+            async down(db: Kysely<unknown>) {
+              await sql`
+                DROP TABLE team_invites, team_members, teams;
+                DROP FUNCTION team_has_owner();
+              `.execute(db);
+            },
+          },
+          '006_booking_participants': {
+            async up(db: Kysely<unknown>) {
+              await runSqlMigration(db, '006_booking_participants.sql');
+            },
+            async down(db: Kysely<unknown>) {
+              await sql`
+                DROP TABLE booking_participants;
+                DROP FUNCTION participant_is_not_organizer();
+              `.execute(db);
+            },
+          },
         };
       },
     },

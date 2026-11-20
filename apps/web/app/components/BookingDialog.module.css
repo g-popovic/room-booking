@@ -1,6 +1,7 @@
 .dialog {
   width: min(540px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   border: 0;
   border-radius: 20px;
   background: var(--paper);
@@ -34,6 +35,11 @@
 .footer span {
   color: var(--muted);
   font-size: 0.875rem;
+}
+
+.footer a {
+  color: var(--green);
+  font-weight: 650;
 }
 
 .controls {
@@ -129,6 +135,11 @@
   color: #7c8178;
   background: #f3f3f0;
   text-decoration: line-through;
+}
+
+.people {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
 }
 
 .footer {

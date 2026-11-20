@@ -5,6 +5,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./migrate": "./src/migrate.ts",
+    "./password": "./src/password.ts",
     "./seed": "./src/seed.ts"
   },
   "scripts": {

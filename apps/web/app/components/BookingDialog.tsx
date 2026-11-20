@@ -1,10 +1,12 @@
 'use client';
 
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { api, errorMessage } from '../lib/api';
-import type { Room, Schedule, Slot } from '../lib/api';
+import type { Person, Room, Schedule, Slot } from '../lib/api';
 import { displayTime, moveDay } from '../lib/format';
+import { PeoplePicker } from './PeoplePicker';
 import styles from './BookingDialog.module.css';
 
 const LAST_DATE = '9999-12-31';
@@ -28,7 +30,12 @@ export function BookingDialog({
   signedIn: boolean;
   onDateChange: () => void;
   onClose: () => void;
-  onBook: (roomId: number, start: string, end: string) => Promise<void>;
+  onBook: (
+    roomId: number,
+    start: string,
+    end: string,
+    participants: Person[],
+  ) => Promise<void>;
   busy: boolean;
   error: string;
 }) {
@@ -39,6 +46,7 @@ export function BookingDialog({
   });
   const [duration, setDuration] = useState(1);
   const [start, setStart] = useState('');
+  const [participants, setParticipants] = useState<Person[]>([]);
   const [availability, setAvailability] = useState<{
     requestKey: string;
     slots: Slot[];
@@ -226,20 +234,42 @@ export function BookingDialog({
         })}
       </div>
 
+      {signedIn && (
+        <div className={styles.people}>
+          <PeoplePicker
+            selected={participants}
+            onChange={setParticipants}
+            capacity={room.capacity}
+            disabled={busy}
+          />
+        </div>
+      )}
+
       <div className={styles.footer}>
         <span>
-          {!signedIn
-            ? 'Choose a demo account in the top bar to book.'
-            : selected
-              ? `${displayTime(selected.start, timeZone)}–${displayTime(selected.end, timeZone)} · Free`
-              : 'Choose a start time'}
+          {!signedIn ? (
+            <>
+              <Link href="/sign-in">Sign in</Link> or{' '}
+              <Link href="/register">create an account</Link> to book.
+            </>
+          ) : selected ? (
+            `${displayTime(selected.start, timeZone)}–${displayTime(selected.end, timeZone)} · Free`
+          ) : (
+            'Choose a start time'
+          )}
         </span>
         <button
           type="button"
           className="primary"
-          disabled={!selected || !signedIn || busy}
+          disabled={
+            !selected ||
+            !signedIn ||
+            busy ||
+            participants.length + 1 > room.capacity
+          }
           onClick={() => {
-            if (selected) void onBook(room.id, selected.start, selected.end);
+            if (selected)
+              void onBook(room.id, selected.start, selected.end, participants);
           }}
         >
           {busy ? 'Working…' : 'Confirm booking'}
